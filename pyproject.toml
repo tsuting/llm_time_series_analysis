@@ -1,0 +1,31 @@
+[project]
+name = "llm_time_series_analysis"
+requires-python = ">= 3.12"
+version = "0.1.0"
+dependencies = [
+    "openai==1.54.5",
+    "pandas==2.2.3",
+    "plotly==5.24.1",
+    "nbformat==5.10.4"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.7.4",
+    "pre-commit"
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+show-fixes = true
+
+[tool.ruff.lint]
+ignore = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
