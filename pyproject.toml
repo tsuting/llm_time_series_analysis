@@ -6,7 +6,8 @@ dependencies = [
     "openai==1.54.5",
     "pandas==2.2.3",
     "plotly==5.24.1",
-    "nbformat==5.10.4"
+    "nbformat==5.10.4",
+    "load_dotenv==1.0.1"
 ]
 
 [project.optional-dependencies]
