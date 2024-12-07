@@ -1,17 +1,17 @@
-question, air_passengers.csv, melbourne_temp.csv, nyc_taxi.csv
-What is the min of the target variable?,
-What is the max of the target variable?,
-What is the mean of the target variable?,
-What is the medium of the target variable?,
-What is the standard deviation of the target variable?,
-What is the Q1 of the target variable?,
-What is the Q3 of the target variable?,
-What are the outliers of the target variable?,
-If there is any missing data in the target variable, please tell me the date.,
-How many data points in the data?,
-Tell me the start date and the end date of the given time series data.,
-What is the frequency of the given time series data?,
-Draw a time series chart using seaborn. x-axis is the time and y-axis is the target variable.,
-Draw a box plot of the target variable.,
-What is the time column?
-What is the target column?
+question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
+What is the min of the target variable?,104.00,0.00,8.00
+What is the max of the target variable?,622.00,26.30,39197.00
+What is the mean of the target variable?,280.30,11.18,15137.57
+What is the medium of the target variable?,265.50,11.00,16778.00
+What is the standard deviation of the target variable?,119.97,4.07,6939.50
+What is the Q1 of the target variable?,180.00,8.30,10262.00
+What is the Q3 of the target variable?,360.50,14.00,19838.75
+How many outliers in the the target variable?,0,13,2
+How many missing dates in the time column?,0,0,0
+How many None in the target column?,0,2,0
+How many data points in the data?,144.00,3652.00,10320.00
+Tell me the start date of the given time series data.,1949-01-01 00:00:00,1981-01-01 00:00:00,2014-07-01 00:00:00
+Tell me the end date of the given time series data.,1960-12-01 00:00:00,1990-12-31 00:00:00,2015-01-31 23:30:00
+What is the frequency of the given time series data?,MS,D,30min
+What is the time column?,ds,Date,time
+What is the target column?,y,Daily minimum temperatures,#Passengers
