@@ -1,0 +1,17 @@
+question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
+Are there any seasonal patterns in the data? Yes, Yes, Yes
+What is the seasonality period in the data? 12, 13, 48
+Are there any constant increasing or decreasing trend in the data over time? Yes, No, No
+Is the dataset stationary without differencing?
+Is the dataset stationary in 5 differencing?
+What is the moving average of the order of 5 at the midpoint of the time column?
+What is the rolling mean of the order of 5 at the midpoint of the time column?
+Is there any correlation between the dataset and holidays?
+Is there any autocorrelation of the time series?
+Is the dataset white noise?
+Between 1 and 10, What are the lagging values highly correlated (>0.8) with the target variable?
+Between 1 and 10, What are the lagging values highly correlated (>0.8) with the target variable if we don't accounting for any influence from other data points?
+What is the average value in the first 10 data points?
+What is the standard dev in the last 10 data points?
+Forecast the final 5 data points using ARIMA.
+Forecast the final 5 data points using prophet, naive, ARIMA, and moving average and tell me the best model.
