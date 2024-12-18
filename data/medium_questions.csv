@@ -1,17 +1,17 @@
 question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
-Are there any seasonal patterns in the data? Yes, Yes, Yes
-What is the seasonality period in the data? 12, 13, 48
-Are there any constant increasing or decreasing trend in the data over time? Yes, No, No
-Is the dataset stationary without differencing?
-Is the dataset stationary in 5 differencing?
-What is the moving average of the order of 5 at the midpoint of the time column?
-What is the rolling mean of the order of 5 at the midpoint of the time column?
-Is there any correlation between the dataset and holidays?
-Is there any autocorrelation of the time series?
-Is the dataset white noise?
-Between 1 and 10, What are the lagging values highly correlated (>0.8) with the target variable?
-Between 1 and 10, What are the lagging values highly correlated (>0.8) with the target variable if we don't accounting for any influence from other data points?
-What is the average value in the first 10 data points?
-What is the standard dev in the last 10 data points?
-Forecast the final 5 data points using ARIMA.
-Forecast the final 5 data points using prophet, naive, ARIMA, and moving average and tell me the best model.
+Are there any seasonal patterns in the data?, Yes, Yes, Yes
+What is the seasonality period in the data?, 12, 13, 48
+Are there any constant increasing or decreasing trend in the data over time?, Yes, No, No
+Is the dataset stationary?, No, No, No
+What is the moving average of the order of 5 at the third data points of the time column?, 122.40, 17.56, 6731.40
+What is the linear correlation between the dataset and public holidays?, -0.08, 0.08, -0.09
+What is the linear correlation between the dataset and the days off (including holidays and weekends)?, -0.03, 0.00, 0.03
+Does the dataset show any autocorrelation?, Yes, Yes, Yes
+Is the dataset white noise?, No, No, No
+Which lagging value has the weakest correlation with the target variable among the values from 1 to 10?, 8, 10, 10
+Which lagging value has the weakest correlation with the target variable among the values from 1 to 10 if we don't accounting for any influence from other data points?, 6, 10, 6
+What is the average in the first 10 data points?, 129.80, 17.86, 4534.20
+What is the standard dev in the last 10 data points?, 77.20, 1.46, 1779.46
+What is the mean value when it's a public holiday?, 251.00, 13.53, 11957.36
+Forecast the last 5 data points using naive model. The train set is from the 1st to the 6th from the bottom. Please round to 2 and use underscore to concatenate the forecast results., 622_622_622_622_622, 14.6_14.6_14.6_14.6_14.6,23719.0_23719.0_23719.0_23719.0_23719.0
+Forecast the last 5 data points using prophet model. The train set is from the 1st to the 6th from the bottom. Please round to 2 and use underscore to concatenate the forecast results., 526.15_487.52_455.9_428.09_452.5, 14.55_14.58_14.61_14.58_14.8,22139.22_21009.81_19774.62_18500.49_17202.22
