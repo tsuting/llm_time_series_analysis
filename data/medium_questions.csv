@@ -11,7 +11,7 @@ Is the dataset white noise?, No, No, No
 Which lagging value has the weakest correlation with the target variable among the values from 1 to 10?, 8, 10, 10
 Which lagging value has the weakest correlation with the target variable among the values from 1 to 10 if we don't accounting for any influence from other data points?, 6, 10, 6
 What is the average in the first 10 data points?, 129.80, 17.86, 4534.20
-What is the standard dev in the last 10 data points?, 77.20, 1.46, 1779.46
+Give me the total amount when the time is Tuesday., 6213.00, 5862.80, 21291463.00
 What is the mean value when it's a public holiday?, 251.00, 13.53, 11957.36
 Forecast the last 5 data points using naive model. The train set is from the 1st to the 6th from the bottom. Please round to 2 and use underscore to concatenate the forecast results., 622_622_622_622_622, 14.6_14.6_14.6_14.6_14.6,23719.0_23719.0_23719.0_23719.0_23719.0
 Forecast the last 5 data points using prophet model. The train set is from the 1st to the 6th from the bottom. Please round to 2 and use underscore to concatenate the forecast results., 526.15_487.52_455.9_428.09_452.5, 14.55_14.58_14.61_14.58_14.8,22139.22_21009.81_19774.62_18500.49_17202.22
