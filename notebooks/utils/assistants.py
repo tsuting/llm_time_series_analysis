@@ -15,14 +15,7 @@ if module_path not in sys.path:
     sys.path.append(module_path)
 
 from utils.utils import convert_types
-from utils.customized_func_tools import (  # noqa: F401
-    get_time_col_and_target_col,
-    get_descriptive_statistics,
-    get_number_of_outliers,
-    get_frequency,
-    get_number_of_missing_datetime,
-    get_number_of_null_values,
-)
+from utils.customized_func_tools import *  # noqa: F403
 
 MODEL_ARGS = {
     "model": "gpt-4o",
@@ -251,10 +244,7 @@ class AzureOpenAIAssistant:
                     # sort the order from old to new
                     for step in run_steps.data[::-1]:
                         if isinstance(step.step_details, ToolCallsStepDetails):
-                            if len(step.step_details.tool_calls) != 1:
-                                print("Weird in step_details.")
-                            else:
-                                tool_call = step.step_details.tool_calls[0]
+                            for tool_call in step.step_details.tool_calls:
                                 if tool_call.type == "function":
                                     result_steps.append(
                                         {
@@ -313,9 +303,16 @@ class AzureOpenAIAssistant:
                                 function_to_call = available_functions[
                                     call.function.name
                                 ]
-                                tool_response = function_to_call(
-                                    **json.loads(call.function.arguments)
-                                )
+                                try:
+                                    tool_response = function_to_call(
+                                        **json.loads(call.function.arguments)
+                                    )
+                                except Exception as e:
+                                    print(e)
+                                    print(f"Function: {call.function.name}")
+                                    print(
+                                        f"Arguments: {json.loads(call.function.arguments)}"
+                                    )
                                 tool_responses.append(
                                     {
                                         "tool_call_id": call.id,
