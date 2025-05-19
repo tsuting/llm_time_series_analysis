@@ -10,26 +10,36 @@ def convert_types(element: any) -> Any:
     if element is None:
         return element
 
+    if isinstance(element, list):
+        return [convert_types(e) for e in element]
+
+    if isinstance(element, str):
+        element = element.strip().lower()
+        if element == "monthly":
+            element = "ms"
+        elif element == "daily":
+            element = "d"
+
     try:
-        return float(element)
+        return round(float(element), 2)
     except ValueError:
         try:
             return pd.to_datetime(element)
         except:
-            try:
-                return element.strip()
-            except:
-                return element
+            return element
 
 
 def eval(df: pd.DataFrame, details: bool = False) -> pd.DataFrame:
     # loop through each file
     for question_file in df["question_file"].unique():
-        for file in df["file"].unique():
-            df_file = df[(df["question_file"] == question_file) & (df["file"] == file)]
+        for dataset_file in df["dataset_file"].unique():
+            df_file = df[
+                (df["question_file"] == question_file)
+                & (df["dataset_file"] == dataset_file)
+            ]
             print("=" * 50)
             print(
-                f"Question file: {question_file}; File: {file}; Accuracy: {accuracy_score(df_file['answer_true'].astype(str).tolist(), df_file['answer_pred'].astype(str).tolist())}"
+                f"Question file: {question_file}; Dataset File: {dataset_file}; Accuracy: {accuracy_score(df_file['answer_true'].astype(str).tolist(), df_file['answer_pred'].astype(str).tolist())}"
             )
             print("=" * 50)
             # loop through each question with wrong answer

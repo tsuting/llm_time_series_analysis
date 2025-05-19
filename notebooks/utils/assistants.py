@@ -14,14 +14,8 @@ module_path = os.path.abspath(os.path.join(".."))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-from utils.utils import convert_types
 from utils.customized_func_tools import *  # noqa: F403
-
-MODEL_ARGS = {
-    "model": "gpt-4o",
-    "temperature": 0,
-    "top_p": 1,
-}
+from utils.vars import MODEL_ARGS
 
 
 class AzureOpenAIAssistant:
@@ -267,12 +261,12 @@ class AzureOpenAIAssistant:
                     return {
                         # get prompts usage
                         **run.usage.to_dict(),
-                        "question": question,
-                        "answer_pred": convert_types(answer_pred),
+                        "org_answer_pred": answer_pred,
                         "messages": result_messages,
                         "steps": result_steps,
                         "attachments": result_attachments,
-                        "execution_time_s": run.completed_at - run.created_at,
+                        "execution_time_s_in_code_interpreter": run.completed_at
+                        - run.created_at,
                     }
 
                 case "requires_action":

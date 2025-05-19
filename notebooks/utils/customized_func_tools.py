@@ -1,14 +1,13 @@
 """This module contains the customized functions and tools for the customized function calling."""
 
 import pandas as pd
-from typing import Dict, Union, List, Any
+from typing import Dict, Union
 from darts.utils.statistics import check_seasonality
 from darts.timeseries import TimeSeries
 from statsmodels.tsa.seasonal import seasonal_decompose
 import statsmodels.api as sm
 import numpy as np
-import holidays
-from darts.models import Prophet
+
 
 TIME_COL = "time_col"
 TARGET_COL = "target_col"
@@ -18,13 +17,13 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_time_col_and_target_col",
-            "description": "read the csv file based on the file path, then get the time column and target column from the dataframe",
+            "description": "Read the CSV file then extract the time column and target column from the dataframe.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
+                        "description": "the file path of the dataset to read",
                     },
                 },
                 "required": ["file_path"],
@@ -36,15 +35,13 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_descriptive_statistics",
-            "description": """Get descriptive statistics e.g., mean, std for the column from the start index to the end index."""
-            """When the start_index is None, it will start from the beginning of the dataframe. When the end_index is None, it is the length of the dataframe."""
-            """The 1st data point is at index 0. For example, first 5 data points are start_index = 0, end_index=5. last 3 data points are start_index = -3, end_index=None.""",
+            "description": "Retrieve descriptive statistics, such as the mean and standard deviation, for the specified column from the start index to the end index. If the start_index is not provided, the calculation will begin from the start of the dataframe. Similarly, if the end_index is not provided, it will extend to the end of the dataframe. start_index and end_index are used to slice the dataframe by pandas dataframe e.g., df.iloc[start_index:end_index].",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
+                        "description": "the file path of the dataset to read",
                     },
                     "statistic_name": {
                         "type": "string",
@@ -57,6 +54,7 @@ TOOLS = [
                             "50%",
                             "75%",
                             "max",
+                            "sum",
                         ],
                         "description": "the name of the statistics to get",
                     },
@@ -67,11 +65,16 @@ TOOLS = [
                     },
                     "start_index": {
                         "type": ["integer", "null"],
-                        "description": "the start index to get the statistics. Default is None which means 0. It's using .iloc[start_index:end_index]",
+                        "description": "the start index to get the statistics. Default is None which means 0. It's using df.iloc[start_index:end_index] so it can be negative.",
                     },
                     "end_index": {
                         "type": ["integer", "null"],
-                        "description": "the end index to get the statistics. Default is None which means the end of the dataframe. It's using .iloc[start_index:end_index]",
+                        "description": "the end index to get the statistics. Default is None which means the length of the dataframe. It's using df.iloc[start_index:end_index] so it can be negative.",
+                    },
+                    "selected_day_in_a_week": {
+                        "type": ["integer", "null"],
+                        "description": "selected day to calculate the statistics. 0 is Monday, 1 is Tuesday, 2 is Wednesday, 3 is Thursday, 4 is Friday, 5 is Saturday, 6 is Sunday. Default is None which means everyday.",
+                        "enum": [0, 1, 2, 3, 4, 5, 6],
                     },
                 },
                 "required": ["file_path", "statistic_name", "col_name"],
@@ -83,21 +86,16 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_number_of_outliers",
-            "description": "Get the number of outliers for the column from the file_path",
+            "description": "Get the number of outliers",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get the outliers.",
+                        "description": "the file path of the dataset",
                     },
                 },
-                "required": ["file_path", "col_name"],
+                "required": ["file_path"],
                 "additionalProperties": False,
             },
         },
@@ -106,21 +104,16 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_frequency",
-            "description": "Get the frequency of the column from the file_path",
+            "description": "Get the frequency of the column",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get the frequency.",
+                        "description": "the file path of the dataset",
                     },
                 },
-                "required": ["file_path", "col_name"],
+                "required": ["file_path"],
                 "additionalProperties": False,
             },
         },
@@ -129,18 +122,36 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_number_of_missing_datetime",
-            "description": "Get the number of missing datetime values in the column from the file_path",
+            "description": "Get the number of missing datetime.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
+                        "description": "the file path of the dataset",
+                    },
+                },
+                "required": ["file_path"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_number_of_null_values",
+            "description": "Get the number of null values.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "the file path of the dataset",
                     },
                     "col_name": {
                         "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get the frequency.",
+                        "enum": [TIME_COL, TARGET_COL],
+                        "description": "the column name to get the the number of null values.",
                     },
                 },
                 "required": ["file_path", "col_name"],
@@ -151,46 +162,14 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_number_of_null_values",
-            "description": "Get the number of null values in the column from the file_path",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get the the number of null values.",
-                    },
-                    "fill_na": {
-                        "type": "boolean",
-                        "description": "whether to fill the null values by the forward fill",
-                    },
-                },
-                "required": ["file_path", "col_name", "fill_na"],
-                "additionalProperties": False,
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "get_seasonality",
-            "description": "Check if the column has seasonality or return the seasonality period. If the type is 'has_seasonality', it will return True if the column has seasonality, False otherwise. If the type is 'seasonality_period', it will return the seasonality period.",
+            "description": "Check if the column has seasonality. It will return True or False.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get and calculate the seasonality.",
+                        "description": "the file path of the dataset",
                     },
                     "type": {
                         "type": "string",
@@ -198,7 +177,7 @@ TOOLS = [
                         "description": "whether to check if the column has seasonality or return the seasonality period",
                     },
                 },
-                "required": ["file_path", "col_name", "type"],
+                "required": ["file_path", "type"],
                 "additionalProperties": False,
             },
         },
@@ -206,26 +185,21 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_the_trend",
+            "name": "get_trend_by_pearson_correlation",
             "description": "Check if the column has trend by extracting the trend with seasonality period, then calculating the pearson correlation between the trend and the index. It will return the pearson correlation value.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to calculate trend.",
+                        "description": "the file path of the dataset",
                     },
                     "seasonality_period": {
                         "type": "integer",
                         "description": "the seasonality period",
                     },
                 },
-                "required": ["file_path", "col_name", "seasonality_period"],
+                "required": ["file_path", "seasonality_period"],
                 "additionalProperties": False,
             },
         },
@@ -234,29 +208,20 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "get_moving_average",
-            "description": "Calculating the moving average with a certain window_size for the column at a certain index",
+            "description": "Calculating the moving average with a certain window_size.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to calculate moving average.",
+                        "description": "the file path of the dataset",
                     },
                     "window_size": {
                         "type": "integer",
                         "description": "the window size for the moving average",
                     },
-                    "index": {
-                        "type": "integer",
-                        "description": "the index to check the moving average.",
-                    },
                 },
-                "required": ["file_path", "col_name", "window_size", "index"],
+                "required": ["file_path", "window_size"],
                 "additionalProperties": False,
             },
         },
@@ -264,26 +229,26 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "forecast_last_n_data",
-            "description": "forecast the last n points data. It will return a list of forecasted values.",
+            "name": "get_forecasting",
+            "description": "forecast the data point with the given model name and given time. Support only naive and average.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
+                        "description": "the file path of the dataset",
                     },
                     "model_name": {
                         "type": "string",
-                        "enum": ["prophet", "naive"],
+                        "enum": ["naive", "average"],
                         "description": "the forecasting model name",
                     },
-                    "forecast_horizon": {
-                        "type": "integer",
-                        "description": "the number of data points to forecast",
+                    "forecast_time": {
+                        "type": "string",
+                        "description": "all the data less equal than (<=) this time will be used as a training set to do forecasting.",
                     },
                 },
-                "required": ["file_path", "model_name", "forecast_horizon"],
+                "required": ["file_path", "model_name", "forecast_time"],
                 "additionalProperties": False,
             },
         },
@@ -291,19 +256,14 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_index_by_calc_acf_or_pacf",
-            "description": "return the index with max or min correlation value among start_lag and end_lag. It will calculate the autocorrelation function (ACF) or Partial autocorrelation from the column, then return the max or min value among start_lag and end_lag.",
+            "name": "get_extreme_acf_pacf_lag",
+            "description": "Find the lag with the minimum or maximum value of autocorrelation or partial autocorrelation between start_lag and end_lag",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "file_path": {
                         "type": "string",
-                        "description": "the file path to read",
-                    },
-                    "col_name": {
-                        "type": "string",
-                        "enum": ["time_col", "target_col"],
-                        "description": "the column name to get the the number of null values.",
+                        "description": "the file path of the dataset",
                     },
                     "start_lag": {
                         "type": "integer",
@@ -321,12 +281,16 @@ TOOLS = [
                     "return_max_or_min": {
                         "type": "string",
                         "enum": ["max", "min"],
-                        "description": "whether to return the index with max or min correlation value",
+                        "description": "whether to return the lag with maximum or minimum correlation value",
+                    },
+                    "return_absolute": {
+                        "type": "boolean",
+                        "enum": [True, False],
+                        "description": "Whether or not to return the absolute value of the correlation",
                     },
                 },
                 "required": [
                     "file_path",
-                    "col_name",
                     "start_lag",
                     "end_lag",
                     "type_of_correlation",
@@ -339,8 +303,8 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_pearson_correlation_between_the_target_col_and_category",
-            "description": "Get Pearson correlation between the target column and the category. The category can be weekend, weekday, and public holiday.",
+            "name": "calculate_weekend_pearson_correlation",
+            "description": "Call this function whenever you need to calculate the Pearson correlation between the target column and weekends.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -348,21 +312,30 @@ TOOLS = [
                         "type": "string",
                         "description": "the file path to read",
                     },
-                    "day_category": {
-                        "type": "array",
-                        "description": "the list of day category to calculate the correlation. Options are ['weekend', 'weekday', 'public_holiday']",
-                        "items": {
-                            "type": "string",
-                            "enum": ["weekend", "weekday", "public_holiday"],
-                        },
-                    },
-                    "country_name": {
+                },
+                "required": ["file_path"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "retrieve_a_row_by_index",
+            "description": "Call this function whenever you need to retrieve a row from the dataset by index.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
                         "type": "string",
-                        "description": "the country name to get the public holidays. Default is 'US'",
-                        "enum": ["US", "AU"],
+                        "description": "the file path to read",
+                    },
+                    "index": {
+                        "type": "integer",
+                        "description": "the index of the row to retrieve. It could be negative since it's using df.iloc[index].",
                     },
                 },
-                "required": ["file_path", "day_category", "country_name"],
+                "required": ["file_path", "index"],
                 "additionalProperties": False,
             },
         },
@@ -397,7 +370,7 @@ def read_csv_file_then_convert_types_and_rename_columns(
 
     # convert types
     df[result[TIME_COL]] = pd.to_datetime(df[result[TIME_COL]])
-    df[result[TARGET_COL]] = pd.to_numeric(df[result[TARGET_COL]], downcast="float")
+    df[result[TARGET_COL]] = pd.to_numeric(df[result[TARGET_COL]])
 
     if fill_na:
         df[result[TARGET_COL]] = df[result[TARGET_COL]].ffill()
@@ -409,28 +382,32 @@ def read_csv_file_then_convert_types_and_rename_columns(
 
 
 def get_descriptive_statistics(
-    file_path: str,
+    file_path: Union[str, None],
     statistic_name: str,
     col_name: str,
     start_index: Union[int, None] = None,
     end_index: Union[int, None] = None,
+    df: pd.DataFrame = pd.DataFrame(),
+    selected_day_in_a_week: Union[int, None] = None,
 ) -> float:
     """Get descriptive statistics between start_index and end_index for the column from the file_path e.g., mean, std, min, max, etc.
     When the start_index is None, it will start from the beginning of the dataframe.
     When the end_index is None, it will end at the end of the dataframe.
 
     Args:
-        file_path (str): file path to read
+        file_path (Union[str, None]): the path of dataset
         statistic_name (str): statistic name to get. Note, count will be the len of the dataframe
         col_name (str): column name to get the statistics.
         start_index (Union[int, None], optional): start index to get the statistics. Defaults to None.
         end_index (Union[int, None], optional): end index to get the statistics. Defaults to None.
+        df (pd.DataFrame, optional): read dataframe. Defaults to pd.DataFrame().
+        selected_day_in_a_week (Union[int, None], optional): selected day to calculate the statistics. 0 is Monday, 1 is Tuesday, 2 is Wednesday, 3 is Thursday, 4 is Friday, 5 is Saturday, 6 is Sunday. Default is None which means everyday.
 
     Returns:
         float: statistic value
     """
-    df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
-
+    if whether_or_not_to_read_from_file(file_path=file_path, df=df):
+        df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
     if start_index is None:
         start_index = 0
     if end_index is None:
@@ -438,12 +415,17 @@ def get_descriptive_statistics(
 
     df = df.iloc[start_index:end_index]
 
-    if statistic_name == "count":
-        return df.shape[0]
+    if selected_day_in_a_week is not None:
+        df = df[df[TIME_COL].dt.dayofweek == selected_day_in_a_week]
 
-    result = df.describe().loc[statistic_name, col_name]
-    if isinstance(result, (int, float)):
-        return round(result, 2)
+    if statistic_name == "sum":
+        result = df[col_name].sum()
+    elif statistic_name in ["mean", "std", "min", "max", "25%", "50%", "75%", "count"]:
+        result = df.describe().loc[statistic_name, col_name]
+    else:
+        raise ValueError(
+            "statistic_name should be one of count, mean, std, min, 25%, 50%, 75%, max, sum"
+        )
 
     return result
 
@@ -455,7 +437,7 @@ def get_time_col_and_target_col(
     If file_path is given, it will read from the file_path. If df is given, it will use the df.
 
     Args:
-        file_path (str, optional): file path to read. Defaults to None.
+        file_path (str, optional): the file path of the dataset Defaults to None.
         df (pd.DataFrame, optional): read dataframe. Defaults to pd.DataFrame().
 
     Raises:
@@ -495,13 +477,12 @@ def get_time_col_and_target_col(
     return {TARGET_COL: target_col, TIME_COL: time_col}
 
 
-def get_number_of_outliers(file_path: str, col_name: str) -> int:
+def get_number_of_outliers(file_path: str, col_name: str = TARGET_COL) -> int:
     """Get the number of outliers for the column from the file_path
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to get the outliers.
-
+        file_path (str): the path of dataset
+        col_name (str): column name to get the number of outliers. Defaults to TARGET_COL.
     Returns:
         int: the number of outliers
     """
@@ -523,15 +504,17 @@ def get_number_of_outliers(file_path: str, col_name: str) -> int:
 
 
 def get_frequency(
-    col_name: str, file_path: Union[str, None] = None, df: pd.DataFrame = pd.DataFrame()
+    col_name: str = TIME_COL,
+    file_path: Union[str, None] = None,
+    df: pd.DataFrame = pd.DataFrame(),
 ) -> str:
     """Get frequency of the column from the file_path
 
     If file_path is given, it will read from the file_path. If df is given, it will use the df.
 
     Args:
-        col_name (str): column name to get the frequency.
-        file_path (Union[str, None], optional): file path to read. Defaults to None.
+        col_name (str): column name to get the frequency. Defaults to TIME_COL.
+        file_path (Union[str, None], optional): the file path of the dataset Defaults to None.
         df (pd.DataFrame, optional): read dataframe. Defaults to pd.DataFrame().
 
     Raises:
@@ -569,12 +552,12 @@ def whether_or_not_to_read_from_file(file_path: str, df: pd.DataFrame) -> bool:
         raise ValueError("Either file_path or df should be provided.")
 
 
-def get_number_of_missing_datetime(file_path: str, col_name: str) -> int:
+def get_number_of_missing_datetime(file_path: str, col_name: str = TIME_COL) -> int:
     """Get the number of missing datetime values in the column from the file_path
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to get the missing datetime.
+        file_path (str): the file path of the dataset
+        col_name (str): column name to get the missing datetime. Defaults to TIME_COL.
 
     Returns:
         int: the number of missing datetime
@@ -591,37 +574,39 @@ def get_number_of_missing_datetime(file_path: str, col_name: str) -> int:
     return len(set(datetime_range.tolist()) - set(df[col_name].tolist()))
 
 
-def get_number_of_null_values(file_path: str, col_name: str, fill_na: bool) -> int:
+def get_number_of_null_values(file_path: str, col_name: str) -> int:
     """Get the number of null values in the column from the file_path
 
     Args:
-        file_path (str): file path to read.
+        file_path (str): the file path of the dataset
         col_name (str): column name to get the the number of null values.
-        fill_na (bool): whether to fill the null values by the forward fill
 
     Returns:
         int: the number of null values
     """
     df = read_csv_file_then_convert_types_and_rename_columns(
-        file_path=file_path, fill_na=fill_na
+        file_path=file_path, fill_na=False
     )
 
     return df[col_name].isnull().sum()
 
 
 def get_seasonality(
-    file_path: str, col_name: str, type: str, df: pd.DataFrame = pd.DataFrame()
-) -> bool:
+    file_path: str,
+    type: str,
+    col_name: str = TARGET_COL,
+    df: pd.DataFrame = pd.DataFrame(),
+) -> Union[bool, int]:
     """Check if the column has seasonality or return the seasonality period
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to check the seasonality.
+        file_path (str): the file path of the dataset
+        col_name (str): column name to check the seasonality. Defaults to TARGET_COL.
         type (str): whether to check if the column has seasonality or return the seasonality period
         df (pd.DataFrame, optional): read dataframe. Defaults to pd.DataFrame().
 
     Returns:
-        bool: True if the column has seasonality, False otherwise
+        Union[bool, int]: True if the column has seasonality, False otherwise
     """
 
     if whether_or_not_to_read_from_file(file_path=file_path, df=df):
@@ -639,12 +624,18 @@ def get_seasonality(
         raise ValueError("type should be either has_seasonality or seasonality_period")
 
 
-def get_the_trend(file_path: str, col_name: str, seasonality_period: int) -> float:
-    """Return the pearson correlation value between index and the column
+def get_trend_by_pearson_correlation(
+    file_path: str,
+    seasonality_period: int,
+    col_name: str = TARGET_COL,
+) -> float:
+    """Return the pearson correlation value between index and the trend.
+        1. decompose the time series to get trend
+        2. calculate the pearson correlation between the trend and the index
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to check the trend.
+        file_path (str): the file path of the dataset
+        col_name (str): column name to check the trend. Defaults to TARGET_COL.
         seasonality_period (int): the seasonality period
 
     Returns:
@@ -662,98 +653,67 @@ def get_the_trend(file_path: str, col_name: str, seasonality_period: int) -> flo
 
 
 def get_moving_average(
-    file_path: str, col_name: str, window_size: int, index: int
+    file_path: str,
+    window_size: int,
+    col_name: str = TARGET_COL,
 ) -> pd.Series:
-    """Calculate the moving average for the column at index
+    """Calculate the moving average
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to calculate the moving average.
+        file_path (str): the file path of the dataset
+        col_name (str): column name to calculate the moving average. Defaults to TARGET_COL.
         window_size (int): the window size for the moving average.
-        index (int): the index to check the moving average. starting from 0
 
     Returns:
         pd.Series: the moving average series
     """
     df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
-    return df[col_name].rolling(window=window_size, center=True).mean().iloc[index]
+    return df[col_name].rolling(window=window_size).mean()
 
 
-def get_holiday_lib(country_name: str) -> Any:
-    """Return the public holidays library based on the country name
-
-    Args:
-        country_name (str): the country name to get the public holidays.
-
-    Returns:
-        Any: the public holidays library
-    """
-
-    if country_name == "US":
-        holidays_lib = holidays.US()
-    elif country_name == "AU":
-        holidays_lib = holidays.AU()
-    else:
-        raise ValueError("Country name is not supported")
-
-    return holidays_lib
-
-
-def get_pearson_correlation_between_the_target_col_and_category(
+def calculate_weekend_pearson_correlation(
     file_path: str,
-    day_category: List[str],
+    col_name: str = TARGET_COL,
     time_col: str = TIME_COL,
-    target_col: str = TARGET_COL,
-    country_name: str = "US",
 ) -> float:
-    """Calculate the pearson correlation between target_col and day category
-
+    """Calculate the Pearson correlation between the target column and weekends.
     Args:
-        file_path (str): file path to read.
-        day_category (List[str], optional): the list of day category to calculate the correlation. Options are ["weekend", "weekday", "public_holiday"].
-        country_name (str): the country name to get the public holidays. Default is "US"
-        time_col (str, optional): time column name. Defaults to TIME_COL.
-        target_col (str, optional): target column name. Defaults to TARGET_COL.
+        file_path (str): the file path of the dataset
+        time_col (str, Optional): time column name. Defaults to TIME_COL.
+        col_name (str): target column name. Defaults to TARGET_COL.
 
     Returns:
         float: pearson correlation value
     """
 
     df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
-    condition = pd.Series([False] * len(df))
 
-    if "weekend" in day_category:
-        condition = condition | df[time_col].apply(lambda x: x.weekday() in [5, 6])
-    if "weekday" in day_category:
-        condition = condition | df[time_col].apply(
-            lambda x: x.weekday() in list(range(5))
-        )
-    if "public_holiday" in day_category:
-        holiday_lib = get_holiday_lib(country_name=country_name)
-        condition = condition | df[time_col].apply(lambda x: x in holiday_lib)
+    condition = df[time_col].apply(lambda x: x.weekday() in [5, 6])
 
-    return df[target_col].corr(condition.astype(int), method="pearson")
+    return df[col_name].corr(condition.astype(int), method="pearson")
 
 
-def get_index_by_calc_acf_or_pacf(
+def get_extreme_acf_pacf_lag(
     file_path: str,
-    col_name: str,
     start_lag: int,
     end_lag: int,
     type_of_correlation: str,
     return_max_or_min: str,
+    return_absolute: bool,
+    col_name: str = TARGET_COL,
 ) -> int:
     """Return the max or min correlation value among start_lag and end_lag.
-        1. calculate the autocorrelation function (ACF) or Partial autocorrelation from the column
-        2. return the max or min value among start_lag and end_lag
+        1. calculate the autocorrelation function or Partial autocorrelation
+        2. return the absolute max or min value among start_lag and end_lag
 
     Args:
-        file_path (str): file path to read.
-        col_name (str): column name to calculate the ACF.
+        file_path (str): the file path of the dataset
+        col_name (str): column name to calculate the correlation. Defaults to TARGET_COL.
         start_lag (int): the start lag.
         end_lag (int): the end lag.
-        type_of_correlation (str): acf or pacf
-        return_max_or_min (str): max or min
+        type_of_correlation (str): the type of correlation to calculate. Support only acf and pacf
+        return_max_or_min (str): whether to return the max or min correlation value
+        return_absolute (bool): whether to return the absolute value of the correlation
 
     Returns:
         int: index with max or min correlation value among start_lag and end_lag
@@ -767,6 +727,9 @@ def get_index_by_calc_acf_or_pacf(
     else:
         raise ValueError('type_of_correlation should be either "acf" or "pacf"')
 
+    if return_absolute:
+        corr = np.abs(corr)
+
     if return_max_or_min == "max":
         return np.argmax(corr[start_lag : end_lag + 1]) + start_lag
     elif return_max_or_min == "min":
@@ -775,45 +738,49 @@ def get_index_by_calc_acf_or_pacf(
         raise ValueError('return_max_or_min should be either "max" or "min"')
 
 
-def forecast_last_n_data(
+def get_forecasting(
     file_path: str,
     model_name: str,
-    forecast_horizon: int,
-    time_col: str = TIME_COL,
-    target_col: str = TARGET_COL,
-) -> List[float]:
-    """Forecast the time series data
+    forecast_time: str,
+    col_name: str = TARGET_COL,
+) -> float:
+    """Forecast the next data point with the given model name. Support only naive and average.
 
     Args:
         file_path (str): file path to read
         model_name (str): the model name to use for forecasting. Support only naive and prophet
-        forecast_horizon (int): the forecast horizon
-        time_col (str, optional): the time column name. Defaults to TIME_COL.
-        target_col (str, optional): the target column name. Defaults to TARGET_COL.
+        col_name (str): the col name for forecasting. Defaults to TARGET_COL.
+        forecast_time (str): the datetime to forecast
     Returns:
-        List[float]: the forecasted values
+        float: the forecasting value
     """
     df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
 
-    forecast_start = pd.to_datetime(df[TIME_COL].iloc[-forecast_horizon])
+    df_train = df[df[TIME_COL] <= pd.to_datetime(forecast_time)]
 
-    # split into train and test
-    df_darts_train, _ = TimeSeries.from_dataframe(
-        df.set_index(time_col), value_cols=target_col
-    ).split_before(forecast_start)
-
-    if model_name == "prophet":
-        model = Prophet()
-        model.fit(df_darts_train)
-        prediction = (
-            model.predict(forecast_horizon).pd_dataframe().round(2)[target_col].tolist()
-        )
-    elif model_name == "naive":
+    if model_name == "naive":
         # find the last point before the forecast start date
-        prediction = [
-            df[df[time_col] < forecast_start][target_col].iloc[-1]
-        ] * forecast_horizon
+        return df_train[col_name].iloc[-1].round(2)
+    elif model_name == "average":
+        return get_descriptive_statistics(
+            df=df_train, file_path=None, statistic_name="mean", col_name=col_name
+        ).round(2)
     else:
-        raise ValueError("model_name should be either prophet or naive")
+        raise ValueError("model_name should be either average or naive")
 
-    return prediction
+
+def retrieve_a_row_by_index(
+    file_path: str,
+    index: int,
+) -> dict:
+    """Return the row of the certain index in the dataframe
+
+    Args:
+        file_path (str): the file path of the dataset
+        index (int): the index to get the time
+
+    Returns:
+        dict: the dict of the row
+    """
+    df = read_csv_file_then_convert_types_and_rename_columns(file_path=file_path)
+    return df.iloc[index].to_dict()

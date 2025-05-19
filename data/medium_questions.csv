@@ -1,17 +1,11 @@
 question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
-Are there any seasonal patterns in the data?, Yes, Yes, Yes
-What is the seasonality period in the data?, 12, 13, 48
-Are there any constantly increasing or decreasing trend in the data over time?, Yes, No, No
-Is the dataset stationary?, No, No, No
-What is the moving average of the order of 5 at the third data points?, 122.40, 17.56, 6731.40
-What is the linear correlation between the dataset and public holidays?, -0.08, 0.08, -0.09
-What is the linear correlation between the dataset and the days off (including holidays and weekends)?, -0.03, 0.00, 0.03
-Does the dataset show any autocorrelation?, Yes, Yes, Yes
-Is the dataset white noise?, No, No, No
-Which lagging value has the weakest absolute correlation with the target variable among the values from 1 to 10?, 8, 10, 10
-Which lagging value has the strongest absolute correlation with the target variable among the values from 7 to 10?, 10, 7, 7
-Which lagging value has the weakest absolute correlation with the target variable among the values from 1 to 10 if we don't accounting for any influence from other data points?, 6, 10, 6
+what is the typical value?,280.30,11.18,15137.57
+What is the first non-NaN value in the rolling mean with a window size of 3?, 120.67, 19.13, 8393.67
 What is the average in the first 10 data points?, 129.80, 17.86, 4534.20
+How many missing datetime in the time column?,0,0,0
+How many missing data in the target column?, 0,2,0
+What is the frequency of the given time series data?,MS,D,30min
+Give me the total amount when the time is Tuesday., 6213.00, 5862.80, 21291463.00
 What is the total of the maximum of the first 10 data points and the minimum of the last 10 data points?,538.00, 31.80, 34135.00
-Forecast the last 5 data points in the time column using naive model., 622.00_622.00_622.00_622.00_622.00, 14.6_14.6_14.6_14.6_14.6,23719.0_23719.0_23719.0_23719.0_23719.0
-Forecast the last 5 data points in the time column using Prophet model, 526.15_487.52_455.9_428.09_452.5, 14.55_14.58_14.61_14.58_14.8,22139.22_21009.81_19774.62_18500.49_17202.22
+Is this a univariate or multivariate time series?, univariate, univariate, univariate
+What is the linear correlation between the dataset and weekends(Saturday and Sunday)?, -0.03, -0.02, 0.07

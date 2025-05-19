@@ -1,5 +1,11 @@
-# required using multiple tooling, more complicated questions
-# return images
-# anomaly detection and Root cause analysis
-# question, air_passengers.csv, melbourne_temp.csv, nyc_taxi.csv
-Give me the total amount when the time is Tuesday., 6213.00, 5862.80, 21291463.00
+question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
+Is the dataset stationary?, No, No, No
+Is the dataset white noise?, No, No, No
+Are there any constantly increasing or decreasing trend in the data over time?, Yes, No, No
+Are there any seasonal patterns in the data?, Yes, Yes, Yes
+How many outliers in the target variable using IQR?,0,13,2
+Forecast the next data point using the naïve method., 432, 13, 26288
+Forecast the next data point using the average method., 280.30,11.18,15137.57
+Which method is the best for forecasting the last data point: the naive method or the average method?, naive, average, naive
+Which lagging value has the weakest absolute correlation among the values from 1 to 10?, 8, 10, 10
+Is there a strong correlation with weekends(Saturday and Sunday)?, No, No, No

@@ -1,13 +1,17 @@
-from pathlib import Path
-
 DATA_DIR = "../../data/"
-EXCEPT_FILES = [
+DATASET_FILES = [
+    "air_passengers.csv",
+    "melbourne_temp.csv",
+    "nyc_taxi.csv",
+]
+
+QUESTION_FILES = [
     "easy_questions.csv",
     "medium_questions.csv",
     "hard_questions.csv",
 ]
 
-QUESTION_FILES = [
-    Path(DATA_DIR, "easy_questions.csv"),
-    Path(DATA_DIR, "medium_questions.csv"),
-]
+MODEL_ARGS = {
+    "model": "gpt-4o",
+    "temperature": 0,
+}
