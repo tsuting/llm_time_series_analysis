@@ -1,0 +1,11 @@
+question,air_passengers.csv,melbourne_temp.csv,nyc_taxi.csv
+what is the typical value?,280.30,11.18,15137.57
+What is the first non-NaN value in the rolling mean with a window size of 3?, 120.67, 19.13, 8393.67
+What is the average in the first 10 data points?, 129.80, 17.86, 4534.20
+How many missing datetime in the time column?,0,0,0
+How many missing data in the target column?, 0,2,0
+What is the frequency of the given time series data?,MS,D,30min
+Give me the total amount when the time is Tuesday., 6213.00, 5862.80, 21291463.00
+What is the total of the maximum of the first 10 data points and the minimum of the last 10 data points?,538.00, 31.80, 34135.00
+Is this a univariate or multivariate time series?, univariate, univariate, univariate
+What is the linear correlation between the dataset and weekends(Saturday and Sunday)?, -0.03, -0.02, 0.07
